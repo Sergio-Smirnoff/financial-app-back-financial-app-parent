@@ -82,3 +82,11 @@ mvn install
 `scripts/dev.sh` (parent workspace) and every service Dockerfile run this automatically.
 
 > Architecture: `docs/specs/architecture.md` (parent workspace).
+
+## CI/CD
+
+| Workflow | Trigger | Does |
+|---|---|---|
+| `ci.yml` | PRs; push to develop/master | builds + tests BOM and commons modules via shared `parent-ci.yml` |
+
+Reusable workflows live in the root repo `Sergio-Smirnoff/financial-app`.
