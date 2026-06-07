@@ -1,6 +1,8 @@
 package com.financialapp.commons.messaging.domain.gateway;
 
+import com.financialapp.commons.messaging.domain.model.EventId;
+
 public interface ProcessedEventGateway {
-    boolean isProcessed(String eventId);
-    void markProcessed(String eventId);
+    boolean isProcessed(EventId eventId);
+    void markProcessed(EventId eventId);
 }

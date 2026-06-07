@@ -1,9 +1,7 @@
 package com.financialapp.commons.messaging.domain.model;
 
-import java.util.UUID;
-
 public record OutboxRecord(
-        String eventId,
+        EventId eventId,
         String topic,
         String key,
         EventType type,
@@ -12,7 +10,7 @@ public record OutboxRecord(
         String dataJson
 ) {
     public OutboxRecord {
-        require(eventId, "eventId");
+        if (eventId == null) throw new IllegalArgumentException("eventId must not be null");
         require(topic, "topic");
         require(key, "key");
         require(source, "source");
@@ -25,7 +23,7 @@ public record OutboxRecord(
 
     public static OutboxRecord create(String topic, String key, EventType type,
                                       String source, String dataSchema, String dataJson) {
-        return new OutboxRecord(UUID.randomUUID().toString(), topic, key, type,
+        return new OutboxRecord(EventId.newId(), topic, key, type,
                 source, dataSchema, dataJson);
     }
 

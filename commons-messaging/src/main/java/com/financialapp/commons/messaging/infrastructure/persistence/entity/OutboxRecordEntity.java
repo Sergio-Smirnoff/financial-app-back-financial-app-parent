@@ -17,7 +17,7 @@ public abstract class OutboxRecordEntity {
     @Column(name = "event_id", nullable = false, unique = true, length = 64)
     private String eventId;
 
-    @Column(nullable = false, length = 120)
+    @Column(nullable = false, length = 249)
     private String topic;
 
     @Column(name = "aggregate_key", nullable = false, length = 64)
@@ -26,10 +26,10 @@ public abstract class OutboxRecordEntity {
     @Column(name = "ce_type", nullable = false, length = 120)
     private String ceType;
 
-    @Column(name = "ce_source", nullable = false, length = 80)
+    @Column(name = "ce_source", nullable = false, length = 255)
     private String ceSource;
 
-    @Column(name = "data_schema", nullable = false, length = 200)
+    @Column(name = "data_schema", nullable = false, length = 512)
     private String dataSchema;
 
     @JdbcTypeCode(SqlTypes.JSON)

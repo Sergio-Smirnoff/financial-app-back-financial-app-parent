@@ -12,7 +12,8 @@ class OutboxRecordTest {
                 "users.user.registered", "42", new EventType("users.user.registered"),
                 "ms-users", "https://schemas.financial-app/users/user-registered/v1",
                 "{\"email\":\"a@b.c\"}");
-        assertThat(r.eventId()).isNotBlank();
+        assertThat(r.eventId()).isNotNull();
+        assertThat(r.eventId().value()).isNotBlank();
         assertThat(r.topic()).isEqualTo("users.user.registered");
         assertThat(r.key()).isEqualTo("42");
     }
@@ -27,6 +28,12 @@ class OutboxRecordTest {
     @Test
     void eventTypeRejectsBlank() {
         assertThatThrownBy(() -> new EventType(" "))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void eventIdRejectsBlank() {
+        assertThatThrownBy(() -> new EventId(" "))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 }
