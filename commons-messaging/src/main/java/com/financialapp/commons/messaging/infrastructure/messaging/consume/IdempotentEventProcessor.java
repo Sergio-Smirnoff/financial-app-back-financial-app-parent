@@ -6,6 +6,7 @@ import com.financialapp.commons.messaging.infrastructure.messaging.serde.CloudEv
 import io.cloudevents.CloudEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.function.Consumer;
 
@@ -21,6 +22,7 @@ public class IdempotentEventProcessor {
         this.serde = serde;
     }
 
+    @Transactional
     public <T> void process(CloudEvent event, Class<T> dataType, Consumer<T> handler) {
         EventId id = new EventId(event.getId());
         if (processedEvents.isProcessed(id)) {

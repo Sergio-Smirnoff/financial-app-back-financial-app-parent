@@ -2,10 +2,12 @@ package com.financialapp.commons.messaging.infrastructure.messaging.relay;
 
 import com.financialapp.commons.messaging.domain.gateway.DomainEventMapper;
 import com.financialapp.commons.messaging.domain.gateway.OutboxGateway;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Slf4j
 @Component
 public class OutboxEventPublisher {
 
@@ -24,5 +26,7 @@ public class OutboxEventPublisher {
                 return;
             }
         }
+        log.warn("No DomainEventMapper found for event type {}; event dropped",
+                event.getClass().getName());
     }
 }

@@ -55,4 +55,24 @@ class OutboxRelayTest {
 
         verify(gateway, never()).markSent(any());
     }
+
+    @Test
+    void leavesRowUnsentWhenSendFutureFailsAsync() {
+        OutboxGateway gateway = mock(OutboxGateway.class);
+        @SuppressWarnings("unchecked")
+        KafkaTemplate<String, CloudEvent> template = mock(KafkaTemplate.class);
+        when(template.send(anyString(), anyString(), any()))
+                .thenReturn(CompletableFuture.failedFuture(
+                        new RuntimeException("async broker reject")));
+
+        OutboxRecord r = OutboxRecord.create("t", "1", new EventType("x"),
+                "ms-x", "schema://v1", "{}");
+        when(gateway.findUnsent(anyInt())).thenReturn(List.of(r));
+
+        OutboxRelay relay = new OutboxRelay(gateway, template,
+                new CloudEventSerde(new ObjectMapper()), 100);
+        relay.flush();
+
+        verify(gateway, never()).markSent(any());
+    }
 }
