@@ -4,14 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.financialapp.commons.messaging.domain.model.OutboxRecord;
 import io.cloudevents.CloudEvent;
 import io.cloudevents.core.builder.CloudEventBuilder;
-import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
-@Component
 public class CloudEventSerde {
 
     private final ObjectMapper objectMapper;

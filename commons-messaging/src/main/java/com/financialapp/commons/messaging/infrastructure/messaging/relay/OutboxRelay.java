@@ -5,15 +5,12 @@ import com.financialapp.commons.messaging.domain.model.OutboxRecord;
 import com.financialapp.commons.messaging.infrastructure.messaging.serde.CloudEventSerde;
 import io.cloudevents.CloudEvent;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Component
 @Slf4j
 public class OutboxRelay {
 
@@ -25,7 +22,7 @@ public class OutboxRelay {
     public OutboxRelay(OutboxGateway outboxGateway,
                        KafkaTemplate<String, CloudEvent> kafkaTemplate,
                        CloudEventSerde serde,
-                       @Value("${messaging.outbox.batch-size:100}") int batchSize) {
+                       int batchSize) {
         this.outboxGateway = outboxGateway;
         this.kafkaTemplate = kafkaTemplate;
         this.serde = serde;
