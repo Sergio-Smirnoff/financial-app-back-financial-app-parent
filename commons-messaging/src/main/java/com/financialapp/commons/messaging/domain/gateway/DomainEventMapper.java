@@ -3,7 +3,7 @@ package com.financialapp.commons.messaging.domain.gateway;
 import com.financialapp.commons.messaging.domain.model.OutboxRecord;
 import java.util.List;
 
-public interface DomainEventMapper<E> {
+public interface DomainEventMapper {
     boolean supports(Object event);
-    List<OutboxRecord> toOutboxRecords(E event);
+    List<OutboxRecord> toOutboxRecords(Object event);
 }
