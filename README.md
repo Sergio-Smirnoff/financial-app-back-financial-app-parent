@@ -34,16 +34,29 @@ financial-app-parent/
 │   └── com.financialapp.commons.core
 │       ├── error/      ErrorCategory, ErrorCode (interface), DomainException (base)
 │       └── response/   ApiResponse  { status, title, code, message, data }
-└── commons-web/     # servlet-MVC shared web infrastructure
-    └── com.financialapp.commons.web
-        ├── error/      ApiExceptionHandler (advice base), ErrorCategoryHttpMapper (static), CommonErrorCode
-        └── openapi/    @ApiErrorCodes, ErrorCodeOperationCustomizer, OpenApiAutoConfiguration
+├── commons-web/     # servlet-MVC shared web infrastructure
+│   └── com.financialapp.commons.web
+│       ├── error/      ApiExceptionHandler (advice base), ErrorCategoryHttpMapper (static), CommonErrorCode
+│       └── openapi/    @ApiErrorCodes, ErrorCodeOperationCustomizer, OpenApiAutoConfiguration
+└── commons-messaging/  # CloudEvents Kafka plumbing — DDD-layered (domain/ + infrastructure/)
+    └── com.financialapp.commons.messaging
+        ├── domain/
+        │   ├── gateway/   OutboxGateway, ProcessedEventGateway, DomainEventMapper (ports)
+        │   └── model/     OutboxRecord, EventType, CeAttributes (value objects)
+        └── infrastructure/
+            ├── messaging/ relay/ (OutboxRelay, OutboxEventPublisher), consume/ (IdempotentEventProcessor,
+            │              CeTypeRegistry), serde/ (CloudEventSerde), header/ (CeHeaders),
+            │              config/ (KafkaCloudEventConfig), error/ (StandardDlqErrorHandler)
+            └── persistence/ entity/ (OutboxRecordEntity, ProcessedEventEntity — @MappedSuperclass)
 ```
+
+**Structural convention.** Shared modules follow the **same DDD layering as the services** — `domain/` (ports under `domain/gateway/`, VOs under `domain/model/`) and `infrastructure/` (framework/SDK adapters) — carrying *only the layers that genuinely apply* to a library (no `web/`/`application/`: a shared module has no controllers or business workflows). `commons-messaging` confines the `io.cloudevents` SDK to `infrastructure/` and exposes only `domain/gateway` ports (DIP); gateway implementations that own a DB table live in each service's `infrastructure/gateway/`. `commons-core`/`commons-web` remain framework-light building-block modules at their current granularity. A shared library is a cross-cutting technical concern, not a bounded context — layered like a service, but never forced to carry empty layers.
 
 | Module | Consumed by | Purpose |
 |---|---|---|
 | `commons-core` | all 7 services | the single `ApiResponse` envelope; `ErrorCode` abstraction implemented by every service's `DomainError` catalog; `DomainException` base caught once by the shared handler |
 | `commons-web` | the 6 servlet services (NOT ms-gateway — WebFlux) | `@RestControllerAdvice` base with domain/validation/malformed/data-integrity/fallback handlers + `constraintMessages()` hook; OpenAPI auto-config that documents every endpoint's declared error codes (`@ApiErrorCodes`) with generated example bodies |
+| `commons-messaging` | the event-driven services (producers + consumers) | CloudEvents 1.0 Kafka binding (binary mode): `domain/gateway` ports (`OutboxGateway`, `ProcessedEventGateway`, `DomainEventMapper`), VOs, and the `infrastructure/` plumbing (`OutboxRelay`, `IdempotentEventProcessor`, `CloudEventSerde`, `CeHeaders`, `StandardDlqErrorHandler`) — see `docs/specs/architecture.md` §1 and the CloudEvents Kafka design spec |
 
 Services add the modules as versionless dependencies (managed in this BOM):
 
