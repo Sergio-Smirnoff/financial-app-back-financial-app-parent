@@ -21,6 +21,7 @@
     <modules>
         <module>commons-core</module>
         <module>commons-web</module>
+        <module>commons-messaging</module>
     </modules>
 
     <properties>
@@ -46,6 +47,20 @@
                 <groupId>com.financialapp</groupId>
                 <artifactId>commons-web</artifactId>
                 <version>1.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.financialapp</groupId>
+                <artifactId>commons-messaging</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+
+            <!-- CloudEvents BOM -->
+            <dependency>
+                <groupId>io.cloudevents</groupId>
+                <artifactId>cloudevents-bom</artifactId>
+                <version>4.0.1</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <!-- Spring Cloud BOM -->
