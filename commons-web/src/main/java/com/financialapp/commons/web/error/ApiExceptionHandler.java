@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 public abstract class ApiExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
+    private static final Pattern COLUMN_PATTERN = Pattern.compile("column \"([^\"]+)\"");
 
     protected Map<String, String> constraintMessages() {
         return Map.of();
@@ -68,10 +69,13 @@ public abstract class ApiExceptionHandler {
 
         if ("23502".equals(sqlState) || "23514".equals(sqlState)) {
             String column = extractColumn(cause);
+            String message = "unknown".equals(column)
+                    ? "Invalid value: violates a database constraint"
+                    : "Invalid value for column '" + column + "'";
             log.warn("Constraint violation [{}] on column [{}]", sqlState, column);
             return ResponseEntity.badRequest().body(ApiResponse.failure(
                     HttpStatus.BAD_REQUEST, CommonErrorCode.VALIDATION_ERROR.code(),
-                    "Invalid value for column '" + column + "'", Map.of("column", column)));
+                    message, Map.of("column", column)));
         }
 
         String constraint = constraintMessages().keySet().stream()
@@ -86,8 +90,7 @@ public abstract class ApiExceptionHandler {
 
     private static String extractColumn(String causeMessage) {
         if (causeMessage == null) return "unknown";
-        Matcher matcher = Pattern
-                .compile("column \"([^\"]+)\"").matcher(causeMessage);
+        Matcher matcher = COLUMN_PATTERN.matcher(causeMessage);
         return matcher.find() ? matcher.group(1) : "unknown";
     }
 
