@@ -12,8 +12,11 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public abstract class ApiExceptionHandler {
 
@@ -60,7 +63,7 @@ public abstract class ApiExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Map<String, Object>>> handleDataIntegrity(DataIntegrityViolationException ex) {
         Throwable mostSpecific = ex.getMostSpecificCause();
-        String sqlState = (mostSpecific instanceof java.sql.SQLException sqlEx) ? sqlEx.getSQLState() : null;
+        String sqlState = (mostSpecific instanceof SQLException sqlEx) ? sqlEx.getSQLState() : null;
         String cause = mostSpecific.getMessage();
 
         if ("23502".equals(sqlState) || "23514".equals(sqlState)) {
@@ -83,7 +86,7 @@ public abstract class ApiExceptionHandler {
 
     private static String extractColumn(String causeMessage) {
         if (causeMessage == null) return "unknown";
-        java.util.regex.Matcher matcher = java.util.regex.Pattern
+        Matcher matcher = Pattern
                 .compile("column \"([^\"]+)\"").matcher(causeMessage);
         return matcher.find() ? matcher.group(1) : "unknown";
     }
