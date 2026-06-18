@@ -9,6 +9,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.sql.SQLException;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -67,5 +68,30 @@ class ApiExceptionHandlerTest {
         ResponseEntity<ApiResponse<Void>> response = handler.handleGeneric(new RuntimeException("x"));
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody().getCode()).isEqualTo("internal_error");
+    }
+
+    @Test
+    void notNullViolationMapsTo400WithColumn() {
+        var cause = new SQLException(
+            "ERROR: null value in column \"alias\" of relation \"accounts\" violates not-null constraint",
+            "23502");
+        var ex = new DataIntegrityViolationException("wrapper", cause);
+
+        var response = handler.handleDataIntegrity(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody().getCode()).isEqualTo("validation_error");
+        assertThat(response.getBody().getData()).containsEntry("column", "alias");
+    }
+
+    @Test
+    void uniqueViolationStillMapsTo409() {
+        var cause = new SQLException("duplicate key value violates unique constraint", "23505");
+        var ex = new DataIntegrityViolationException("wrapper", cause);
+
+        var response = handler.handleDataIntegrity(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody().getCode()).isEqualTo("database_conflict");
     }
 }
