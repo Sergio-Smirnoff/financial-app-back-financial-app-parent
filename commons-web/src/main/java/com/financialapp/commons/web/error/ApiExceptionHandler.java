@@ -59,7 +59,18 @@ public abstract class ApiExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Map<String, Object>>> handleDataIntegrity(DataIntegrityViolationException ex) {
-        String cause = ex.getMostSpecificCause().getMessage();
+        Throwable mostSpecific = ex.getMostSpecificCause();
+        String sqlState = (mostSpecific instanceof java.sql.SQLException sqlEx) ? sqlEx.getSQLState() : null;
+        String cause = mostSpecific.getMessage();
+
+        if ("23502".equals(sqlState) || "23514".equals(sqlState)) {
+            String column = extractColumn(cause);
+            log.warn("Constraint violation [{}] on column [{}]", sqlState, column);
+            return ResponseEntity.badRequest().body(ApiResponse.failure(
+                    HttpStatus.BAD_REQUEST, CommonErrorCode.VALIDATION_ERROR.code(),
+                    "Invalid value for column '" + column + "'", Map.of("column", column)));
+        }
+
         String constraint = constraintMessages().keySet().stream()
                 .filter(constraintKey -> cause != null && cause.contains(constraintKey))
                 .findFirst().orElse("unknown_constraint");
@@ -68,6 +79,13 @@ public abstract class ApiExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.failure(
                 HttpStatus.CONFLICT, CommonErrorCode.DATABASE_CONFLICT.code(),
                 message, Map.of("constraint", constraint)));
+    }
+
+    private static String extractColumn(String causeMessage) {
+        if (causeMessage == null) return "unknown";
+        java.util.regex.Matcher matcher = java.util.regex.Pattern
+                .compile("column \"([^\"]+)\"").matcher(causeMessage);
+        return matcher.find() ? matcher.group(1) : "unknown";
     }
 
     @ExceptionHandler(Exception.class)
