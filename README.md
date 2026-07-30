@@ -32,6 +32,7 @@ financial-app-parent/
 ├── pom.xml          # BOM parent (packaging pom) + <modules> aggregator
 ├── commons-core/    # shared envelope + error model — framework-free except HttpStatus/Jackson
 │   └── com.financialapp.commons.core
+│       ├── domain/model/ shared zero-behavior domain vocabulary (IvaTreatment, PageResult)
 │       ├── error/      ErrorCategory, ErrorCode (interface), DomainException (base)
 │       └── response/   ApiResponse  { status, title, code, message, data }
 ├── commons-web/     # servlet-MVC shared web infrastructure
@@ -54,7 +55,7 @@ financial-app-parent/
 
 | Module | Consumed by | Purpose |
 |---|---|---|
-| `commons-core` | all 7 services | the single `ApiResponse` envelope; `ErrorCode` abstraction implemented by every service's `DomainError` catalog; `DomainException` base caught once by the shared handler |
+| `commons-core` | all 7 services | the single `ApiResponse` envelope; `ErrorCode` abstraction implemented by every service's `DomainError` catalog; `DomainException` base caught once by the shared handler; `com.financialapp.commons.core.domain.model` shared zero-behavior domain vocabulary (`IvaTreatment`, cursor-shaped `PageResult<T>`) |
 | `commons-web` | the 6 servlet services (NOT ms-gateway — WebFlux) | `@RestControllerAdvice` base with domain/validation/malformed/data-integrity/fallback handlers + `constraintMessages()` hook; OpenAPI auto-config that documents every endpoint's declared error codes (`@ApiErrorCodes`) with generated example bodies |
 | `commons-messaging` | the event-driven services (producers + consumers) | CloudEvents 1.0 Kafka binding (binary mode): `domain/gateway` ports (`OutboxGateway`, `ProcessedEventGateway`, `DomainEventMapper`), VOs, and the `infrastructure/` plumbing (`OutboxRelay`, `IdempotentEventProcessor`, `CloudEventSerde`, `CeHeaders`, `StandardDlqErrorHandler`) — see `docs/specs/architecture.md` §1 and the CloudEvents Kafka design spec |
 
