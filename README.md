@@ -57,7 +57,7 @@ financial-app-parent/
 |---|---|---|
 | `commons-core` | all 7 services | the single `ApiResponse` envelope; `ErrorCode` abstraction implemented by every service's `DomainError` catalog; `DomainException` base caught once by the shared handler; `com.financialapp.commons.core.domain.model` shared zero-behavior domain vocabulary (`IvaTreatment`, cursor-shaped `PageResult<T>`) |
 | `commons-web` | the 6 servlet services (NOT ms-gateway — WebFlux) | `@RestControllerAdvice` base with domain/validation/malformed/data-integrity/fallback handlers + `constraintMessages()` hook; OpenAPI auto-config that documents every endpoint's declared error codes (`@ApiErrorCodes`) with generated example bodies |
-| `commons-messaging` | the event-driven services (producers + consumers) | CloudEvents 1.0 Kafka binding (binary mode): `domain/gateway` ports (`OutboxGateway`, `ProcessedEventGateway`, `DomainEventMapper`), VOs, and the `infrastructure/` plumbing (`OutboxRelay`, `IdempotentEventProcessor`, `CloudEventSerde`, `CeHeaders`, `StandardDlqErrorHandler`) — see `docs/specs/architecture.md` §1 and the CloudEvents Kafka design spec |
+| `commons-messaging` | the event-driven services (producers + consumers) | CloudEvents 1.0 Kafka binding (binary mode): `domain/gateway` ports (`OutboxGateway`, `ProcessedEventGateway`, `DomainEventMapper`), VOs, and the `infrastructure/` plumbing (`OutboxRelay`, `IdempotentEventProcessor`, `CloudEventSerde`, `CeHeaders`, `StandardDlqErrorHandler`) — see `.ai/references/ARCHITECTURE.md` §1 and the CloudEvents Kafka design spec |
 
 Services add the modules as versionless dependencies (managed in this BOM):
 
@@ -95,7 +95,7 @@ mvn install
 
 `scripts/dev.sh` (parent workspace) and every service Dockerfile run this automatically.
 
-> Architecture: `docs/specs/architecture.md` (parent workspace).
+> Architecture: `.ai/references/ARCHITECTURE.md` (parent workspace).
 
 ## CI/CD
 
