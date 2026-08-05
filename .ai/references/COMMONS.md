@@ -8,7 +8,7 @@ Shared modules and parent BOM details. Shared value objects (`Money`, `Cbu`, `Us
 - `ApiResponse<T>`: Standard JSON response envelope (`status`, `title`, `code`, `message`, `data`).
 - `ErrorCode`: Interface for service domain error codes (`getSlug()`, `getHttpStatus()`).
 - `DomainError`: Contract implemented by error enums across microservices.
-- Base exception types: `DomainException`, `ResourceNotFoundException`, `ResourceAlreadyExistsException`.
+- Shared zero-behavior value objects: `IvaTreatment`, `PageResult<T>`, `Cbu`.
 
 ### `commons-web`
 - `ApiExceptionHandler`: Shared `@RestControllerAdvice` base class mapping `DomainException` to `ApiResponse`.
