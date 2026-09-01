@@ -12,12 +12,16 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public abstract class ApiExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
+    private static final Pattern COLUMN_PATTERN = Pattern.compile("column \"([^\"]+)\"");
 
     protected Map<String, String> constraintMessages() {
         return Map.of();
@@ -59,7 +63,21 @@ public abstract class ApiExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Map<String, Object>>> handleDataIntegrity(DataIntegrityViolationException ex) {
-        String cause = ex.getMostSpecificCause().getMessage();
+        Throwable mostSpecific = ex.getMostSpecificCause();
+        String sqlState = (mostSpecific instanceof SQLException sqlEx) ? sqlEx.getSQLState() : null;
+        String cause = mostSpecific.getMessage();
+
+        if ("23502".equals(sqlState) || "23514".equals(sqlState)) {
+            String column = extractColumn(cause);
+            String message = "unknown".equals(column)
+                    ? "Invalid value: violates a database constraint"
+                    : "Invalid value for column '" + column + "'";
+            log.warn("Constraint violation [{}] on column [{}]", sqlState, column);
+            return ResponseEntity.badRequest().body(ApiResponse.failure(
+                    HttpStatus.BAD_REQUEST, CommonErrorCode.VALIDATION_ERROR.code(),
+                    message, Map.of("column", column)));
+        }
+
         String constraint = constraintMessages().keySet().stream()
                 .filter(constraintKey -> cause != null && cause.contains(constraintKey))
                 .findFirst().orElse("unknown_constraint");
@@ -68,6 +86,12 @@ public abstract class ApiExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.failure(
                 HttpStatus.CONFLICT, CommonErrorCode.DATABASE_CONFLICT.code(),
                 message, Map.of("constraint", constraint)));
+    }
+
+    private static String extractColumn(String causeMessage) {
+        if (causeMessage == null) return "unknown";
+        Matcher matcher = COLUMN_PATTERN.matcher(causeMessage);
+        return matcher.find() ? matcher.group(1) : "unknown";
     }
 
     @ExceptionHandler(Exception.class)
